@@ -11,7 +11,7 @@ BWTA::Region* enemy_base;
 void ExampleAIModule::onStart()
 {
 	
-	Broodwar->sendText("Hello world!");
+	Broodwar->sendText("Hello worldz!");
 
 	//Enable flags
 	Broodwar->enableFlag(Flag::UserInput);

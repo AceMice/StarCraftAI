@@ -29,7 +29,6 @@ void ExampleAIModule::onStart()
     for(std::set<Unit*>::const_iterator i=Broodwar->self()->getUnits().begin();i!=Broodwar->self()->getUnits().end();i++)
     {
 		
-		BWAPI::UnitType::
 		if ((*i)->getType().isWorker())
 		{
 			Unit* closestMineral=NULL;
@@ -44,11 +43,13 @@ void ExampleAIModule::onStart()
 			{
 				(*i)->rightClick(closestMineral);
 				Broodwar->printf("Send worker %d to mineral %d", (*i)->getID(), closestMineral->getID());
-				
+				Broodwar->printf("New version");
 			}
 		}
 	}
 }
+
+
 
 //Called when a game is ended.
 //No need to change this.
@@ -59,6 +60,8 @@ void ExampleAIModule::onEnd(bool isWinner)
 		Broodwar->sendText("I won!");
 	}
 }
+
+
 
 //Finds a guard point around the home base.
 //A guard point is the center of a chokepoint surrounding
@@ -83,6 +86,9 @@ Position ExampleAIModule::findGuardPoint()
 	return choke->getCenter();
 }
 
+
+
+
 //This is the method called each frame. This is where the bot's logic
 //shall be called.
 void ExampleAIModule::onFrame()
@@ -90,17 +96,19 @@ void ExampleAIModule::onFrame()
 	//Call every 100:th frame
 	if (Broodwar->getFrameCount() % 100 == 0)
 	{	
-		if(BWAPI::Player::minerals() > 100){
+		bool check = true;
+		if(check == true)
+		{
 			for(std::set<Unit*>::const_iterator i=Broodwar->self()->getUnits().begin();i!=Broodwar->self()->getUnits().end();i++)
 			{
 				//Check if unit is a worker.
-				if ((*i)->getType().isWorker()){
-				
-					(*i)->build(BWAPI::TilePosition::);
+				if ((*i)->getType().isWorker())
+				{
+					(*i)->build((*i)->getTilePosition(),BWAPI::UnitTypes::Terran_Supply_Depot);
 				
 				}
-			{
-		
+			
+			}
 		}
 
 		//Order one of our workers to guard our chokepoint.
@@ -127,6 +135,7 @@ void ExampleAIModule::onFrame()
 	}
 }
 
+
 //Is called when text is written in the console window.
 //Can be used to toggle stuff on and off.
 void ExampleAIModule::onSendText(std::string text)
@@ -146,6 +155,7 @@ void ExampleAIModule::onSendText(std::string text)
 	}
 }
 
+
 //Called when the opponent sends text messages.
 //No need to change this.
 void ExampleAIModule::onReceiveText(BWAPI::Player* player, std::string text)
@@ -153,12 +163,14 @@ void ExampleAIModule::onReceiveText(BWAPI::Player* player, std::string text)
 	Broodwar->printf("%s said '%s'", player->getName().c_str(), text.c_str());
 }
 
+
 //Called when a player leaves the game.
 //No need to change this.
 void ExampleAIModule::onPlayerLeft(BWAPI::Player* player)
 {
 	Broodwar->sendText("%s left the game.",player->getName().c_str());
 }
+
 
 //Called when a nuclear launch is detected.
 //No need to change this.
@@ -174,11 +186,13 @@ void ExampleAIModule::onNukeDetect(BWAPI::Position target)
 	}
 }
 
+
 //No need to change this.
 void ExampleAIModule::onUnitDiscover(BWAPI::Unit* unit)
 {
 	//Broodwar->sendText("A %s [%x] has been discovered at (%d,%d)",unit->getType().getName().c_str(),unit,unit->getPosition().x(),unit->getPosition().y());
 }
+
 
 //No need to change this.
 void ExampleAIModule::onUnitEvade(BWAPI::Unit* unit)
@@ -186,17 +200,20 @@ void ExampleAIModule::onUnitEvade(BWAPI::Unit* unit)
 	//Broodwar->sendText("A %s [%x] was last accessible at (%d,%d)",unit->getType().getName().c_str(),unit,unit->getPosition().x(),unit->getPosition().y());
 }
 
+
 //No need to change this.
 void ExampleAIModule::onUnitShow(BWAPI::Unit* unit)
 {
 	//Broodwar->sendText("A %s [%x] has been spotted at (%d,%d)",unit->getType().getName().c_str(),unit,unit->getPosition().x(),unit->getPosition().y());
 }
 
+
 //No need to change this.
 void ExampleAIModule::onUnitHide(BWAPI::Unit* unit)
 {
 	//Broodwar->sendText("A %s [%x] was last seen at (%d,%d)",unit->getType().getName().c_str(),unit,unit->getPosition().x(),unit->getPosition().y());
 }
+
 
 //Called when a new unit has been created.
 //Note: The event is called when the new unit is built, not when it
@@ -208,6 +225,7 @@ void ExampleAIModule::onUnitCreate(BWAPI::Unit* unit)
 		Broodwar->sendText("A %s [%x] has been created at (%d,%d)",unit->getType().getName().c_str(),unit,unit->getPosition().x(),unit->getPosition().y());
 	}
 }
+
 
 //Called when a unit has been destroyed.
 void ExampleAIModule::onUnitDestroy(BWAPI::Unit* unit)
@@ -222,12 +240,14 @@ void ExampleAIModule::onUnitDestroy(BWAPI::Unit* unit)
 	}
 }
 
+
 //Only needed for Zerg units.
 //No need to change this.
 void ExampleAIModule::onUnitMorph(BWAPI::Unit* unit)
 {
 	//Broodwar->sendText("A %s [%x] has been morphed at (%d,%d)",unit->getType().getName().c_str(),unit,unit->getPosition().x(),unit->getPosition().y());
 }
+
 
 //No need to change this.
 void ExampleAIModule::onUnitRenegade(BWAPI::Unit* unit)
@@ -236,10 +256,12 @@ void ExampleAIModule::onUnitRenegade(BWAPI::Unit* unit)
 }
 
 //No need to change this.
+
 void ExampleAIModule::onSaveGame(std::string gameName)
 {
 	Broodwar->printf("The game was saved to \"%s\".", gameName.c_str());
 }
+
 
 //Analyzes the map.
 //No need to change this.
@@ -264,6 +286,7 @@ DWORD WINAPI AnalyzeThread()
 
 //Prints some stats about the units the player has.
 //No need to change this.
+
 void ExampleAIModule::drawStats()
 {
 	std::set<Unit*> myUnits = Broodwar->self()->getUnits();
@@ -284,6 +307,7 @@ void ExampleAIModule::drawStats()
 		line++;
 	}
 }
+
 
 //Draws terrain data aroung regions and chokepoints.
 //No need to change this.

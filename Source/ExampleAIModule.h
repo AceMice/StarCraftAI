@@ -16,7 +16,7 @@ using namespace BWTA;
 class ExampleAIModule : public BWAPI::AIModule
 {
 private:
-	float AIstate = 1.0;
+	//float AIstate = 1.0;
 public:
 	//Methods inherited from BWAPI:AIModule
 	virtual void onStart();

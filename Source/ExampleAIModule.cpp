@@ -381,6 +381,27 @@ void ExampleAIModule::onUnitComplete(BWAPI::Unit *unit)
 
 void ExampleAIModule::getBuildPositions()
 {
+	TilePosition baseTile = Broodwar->self()->getStartLocation();
+	TilePosition chokeTile = TilePosition(this->findGuardPoint());
+	if(baseTile.x < chokeTile.x){
+		for(int i = 0; i < 10; i++){
+			this->buildPos[i].x = baseTile.x + 4 + (i * 4);
+		}
+	}
+	else{
+		for(int i = 0; i < 10; i++){
+			this->buildPos[i].x = baseTile.x - 4 - (i * 4);
+		}
+	}
 
+	if(baseTile.y < chokeTile.y){
+		for(int i = 0; i < 10; i++){
+			this->buildPos[i].y = baseTile.y + 4 + (i * 4);
+		}
+	}
+	else{
+		for(int i = 0; i < 10; i++){
+			this->buildPos[i].y = baseTile.y - 4 - (i * 4);
+		}
+	}
 }
-

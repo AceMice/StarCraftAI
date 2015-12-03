@@ -50,8 +50,23 @@ void ExampleAIModule::onStart()
 				
 			}
 		}
-	}
 
+	}
+		
+	for(std::set<Unit*>::const_iterator i=Broodwar->self()->getUnits().begin();i!=Broodwar->self()->getUnits().end();i++)
+    {
+	//Check if unit is a worker.
+		if ((*i)->getType().isWorker())
+		{
+			//Find guard point
+			Position guardPoint = findGuardPoint();
+			//Order the worker to move to the guard point
+			(*i)->rightClick(guardPoint);
+			//Only send the first worker.
+			break;
+		}
+
+	}
 	
 }
 
@@ -97,6 +112,12 @@ void ExampleAIModule::onFrame()
 	{
 		switch(this->AIstate){
 			case 1:
+				
+
+
+
+
+
 				break;
 			case 2:
 				break;
@@ -105,19 +126,7 @@ void ExampleAIModule::onFrame()
 		}
 		//Order one of our workers to guard our chokepoint.
 		//Iterate through the list of units.
-		for(std::set<Unit*>::const_iterator i=Broodwar->self()->getUnits().begin();i!=Broodwar->self()->getUnits().end();i++)
-		{
-			//Check if unit is a worker.
-			if ((*i)->getType().isWorker())
-			{
-				//Find guard point
-				Position guardPoint = findGuardPoint();
-				//Order the worker to move to the guard point
-				(*i)->rightClick(guardPoint);
-				//Only send the first worker.
-				break;
-			}
-		}
+		
 	}
   
 	//Draw lines around regions, chokepoints etc.
@@ -375,12 +384,3 @@ void ExampleAIModule::getBuildPositions()
 
 }
 
-void ExampleAIModule::buildBuilding(BWAPI::UnitType building, BWAPI::TilePosition tilePos)
-{
-	
-}
-
-void ExampleAIModule::trainUnit(BWAPI::UnitType unitToTrain, BWAPI::UnitType building)
-{
-
-}

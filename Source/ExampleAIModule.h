@@ -16,7 +16,7 @@ using namespace BWTA;
 class ExampleAIModule : public BWAPI::AIModule
 {
 private:
-	float AIstate;
+	int AIstate;
 	BWAPI::TilePosition buildPos[10];
 public:
 	ExampleAIModule();
@@ -46,4 +46,6 @@ public:
 	void showForces();
 	Position findGuardPoint();
 	void getBuildPositions();
+	void buildBuilding(BWAPI::UnitType building, BWAPI::TilePosition tilePos);
+	void trainUnit(BWAPI::UnitType unitToTrain, BWAPI::UnitType building);
 };

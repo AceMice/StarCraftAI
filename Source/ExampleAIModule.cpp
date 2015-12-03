@@ -15,7 +15,6 @@ ExampleAIModule::ExampleAIModule()
 //when a new game has been started with the bot.
 void ExampleAIModule::onStart()
 {
-	
 	Broodwar->sendText("Hello world!");
 
 	//Enable flags
@@ -33,8 +32,7 @@ void ExampleAIModule::onStart()
     //Send each worker to the mineral field that is closest to it
     for(std::set<Unit*>::const_iterator i=Broodwar->self()->getUnits().begin();i!=Broodwar->self()->getUnits().end();i++)
     {
-		
-		BWAPI::UnitType::
+
 		if ((*i)->getType().isWorker())
 		{
 			Unit* closestMineral=NULL;
@@ -98,9 +96,9 @@ void ExampleAIModule::onFrame()
 	if (Broodwar->getFrameCount() % 100 == 0)
 	{
 		switch(this->AIstate){
-			case 1.0:
+			case 1:
 				break;
-			case 1.1
+			case 2:
 				break;
 			default:
 				Broodwar->printf("AIState fucked up!");
@@ -374,5 +372,15 @@ void ExampleAIModule::onUnitComplete(BWAPI::Unit *unit)
 
 void ExampleAIModule::getBuildPositions()
 {
+
+}
+
+void ExampleAIModule::buildBuilding(BWAPI::UnitType building, BWAPI::TilePosition tilePos)
+{
 	
+}
+
+void ExampleAIModule::trainUnit(BWAPI::UnitType unitToTrain, BWAPI::UnitType building)
+{
+
 }

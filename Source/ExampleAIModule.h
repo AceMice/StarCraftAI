@@ -16,8 +16,10 @@ using namespace BWTA;
 class ExampleAIModule : public BWAPI::AIModule
 {
 private:
-	//float AIstate = 1.0;
+	float AIstate;
+	BWAPI::TilePosition buildPos[10];
 public:
+	ExampleAIModule();
 	//Methods inherited from BWAPI:AIModule
 	virtual void onStart();
 	virtual void onEnd(bool isWinner);
@@ -43,4 +45,5 @@ public:
 	void showPlayers();
 	void showForces();
 	Position findGuardPoint();
+	void getBuildPositions();
 };

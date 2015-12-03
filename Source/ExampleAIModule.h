@@ -17,7 +17,7 @@ class ExampleAIModule : public BWAPI::AIModule
 {
 private:
 	int AIstate;
-	BWAPI::TilePosition buildPos[10];
+	BWAPI::TilePosition buildPos[16];
 public:
 	ExampleAIModule();
 	//Methods inherited from BWAPI:AIModule

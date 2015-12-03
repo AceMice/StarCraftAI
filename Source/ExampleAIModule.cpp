@@ -29,6 +29,11 @@ void ExampleAIModule::onStart()
 	//CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)AnalyzeThread, NULL, 0, NULL); //Threaded version
 	AnalyzeThread();
 	
+	this->getBuildPositions();
+
+	for(int i = 0; i < 16; i++){
+		Broodwar->printf("Build position %d: (%d, %d)", i, this->buildPos[i].x(), this->buildPos[i].y());
+	}
     //Send each worker to the mineral field that is closest to it
     for(std::set<Unit*>::const_iterator i=Broodwar->self()->getUnits().begin();i!=Broodwar->self()->getUnits().end();i++)
     {
@@ -65,7 +70,6 @@ void ExampleAIModule::onStart()
 			//Only send the first worker.
 			break;
 		}
-
 	}
 	
 }
@@ -110,20 +114,8 @@ void ExampleAIModule::onFrame()
 	//Call every 100:th frame
 	if (Broodwar->getFrameCount() % 100 == 0)
 	{
-		switch(this->AIstate){
-			case 1:
-				
-
-
-
-
-
-				break;
-			case 2:
-				break;
-			default:
-				Broodwar->printf("AIState fucked up!");
-		}
+		
+		//Broodwar->printf("It's working alright!");
 		//Order one of our workers to guard our chokepoint.
 		//Iterate through the list of units.
 		
@@ -133,6 +125,13 @@ void ExampleAIModule::onFrame()
 	if (analyzed)
 	{
 		drawTerrainData();
+		/*Broodwar->printf("Drawing building positions...");
+		for(int i = 0; i < 10; i++){
+			Broodwar->drawBox(CoordinateType::Map, 
+				this->buildPos[i].x() * 32, this->buildPos[i].y() * 32, 
+				(this->buildPos[i].x() + 4) * 32, (this->buildPos[i].y() + 4)* 32,
+				Colors::Green, false);
+		}*/
 	}
 }
 
@@ -344,6 +343,14 @@ void ExampleAIModule::drawTerrainData()
 			Broodwar->drawLine(CoordinateType::Map,point1.x(),point1.y(),point2.x(),point2.y(),Colors::Red);
 		}
 	}
+	//Draw the building positions
+	//Broodwar->printf("Drawing building positions...");
+	for(int i = 0; i < 16; i++){
+		Broodwar->drawBox(CoordinateType::Map, 
+			this->buildPos[i].x() * 32, this->buildPos[i].y() * 32, 
+			(this->buildPos[i].x() + 4) * 32, (this->buildPos[i].y() + 4)* 32,
+			Colors::Purple, false);
+	}
 }
 
 //Show player information.
@@ -383,25 +390,31 @@ void ExampleAIModule::getBuildPositions()
 {
 	TilePosition baseTile = Broodwar->self()->getStartLocation();
 	TilePosition chokeTile = TilePosition(this->findGuardPoint());
-	if(baseTile.x < chokeTile.x){
-		for(int i = 0; i < 10; i++){
-			this->buildPos[i].x = baseTile.x + 4 + (i * 4);
+	int xs[16];
+	int ys[16];
+	if(baseTile.x() < chokeTile.x()){
+		for(int i = 0; i < 16; i++){
+			xs[i] = baseTile.x() + ((i / 4) * 4);
 		}
 	}
 	else{
-		for(int i = 0; i < 10; i++){
-			this->buildPos[i].x = baseTile.x - 4 - (i * 4);
+		for(int i = 0; i < 16; i++){
+			xs[i] = baseTile.x() - ((i / 4) * 4);
 		}
 	}
 
-	if(baseTile.y < chokeTile.y){
-		for(int i = 0; i < 10; i++){
-			this->buildPos[i].y = baseTile.y + 4 + (i * 4);
+	if(baseTile.y() < chokeTile.y()){
+		for(int i = 0; i < 16; i++){
+			ys[i] = baseTile.y() + ((i % 4) * 4);
 		}
 	}
 	else{
-		for(int i = 0; i < 10; i++){
-			this->buildPos[i].y = baseTile.y - 4 - (i * 4);
+		for(int i = 0; i < 16; i++){
+			ys[i] = baseTile.y() - ((i % 4) * 4);
 		}
+	}
+
+	for(int i = 0; i < 16; i++){
+		this->buildPos[i] = TilePosition(xs[i], ys[i]);
 	}
 }

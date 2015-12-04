@@ -21,6 +21,7 @@ private:
 
 	std::set<BWAPI::Unit*> builders;
 	std::set<BWAPI::Unit*> army;
+	std::set<BWAPI::Unit*> buildings;
 
 public:
 	ExampleAIModule();

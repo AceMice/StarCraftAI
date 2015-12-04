@@ -225,6 +225,11 @@ void ExampleAIModule::onUnitCreate(BWAPI::Unit* unit)
 			Broodwar->printf("Added soldier %d to army", unit->getID() );
 			Broodwar->printf("%d",this->army.size());	
 		}
+		else{
+			this->buildings.insert(unit);
+			Broodwar->printf("Added building %d to buildings", unit->getID() );
+			Broodwar->printf("%d",this->buildings.size());	
+		}
 	}
 }
 
@@ -244,6 +249,11 @@ void ExampleAIModule::onUnitDestroy(BWAPI::Unit* unit)
 			Broodwar->printf("Deleted soldier from army");
 			Broodwar->printf("%d",this->army.size());
 		
+		}
+		else{
+			this->buildings.erase(this->buildings.find(unit));
+			Broodwar->printf("Deleted building from buildings");
+			Broodwar->printf("%d",this->buildings.size());
 		}
 		Broodwar->sendText("My unit %s [%x] has been destroyed at (%d,%d)",unit->getType().getName().c_str(),unit,unit->getPosition().x(),unit->getPosition().y());
 	}

@@ -8,14 +8,14 @@ BWTA::Region* enemy_base;
 
 ExampleAIModule::ExampleAIModule()
 {
-	this->AIstate = 1.0f;
+	Broodwar->printf("Initaion of AI");
+	this->AIstate = 1;
 }
 
 //This is the startup method. It is called once
 //when a new game has been started with the bot.
 void ExampleAIModule::onStart()
 {
-	Broodwar->sendText("Hello world!");
 
 	//Enable flags
 	Broodwar->enableFlag(Flag::UserInput);
@@ -34,7 +34,8 @@ void ExampleAIModule::onStart()
     {
 
 		if ((*i)->getType().isWorker())
-		{
+		{	
+			
 			Unit* closestMineral=NULL;
 			for(std::set<Unit*>::iterator m=Broodwar->getMinerals().begin();m!=Broodwar->getMinerals().end();m++)
 			{
@@ -46,13 +47,17 @@ void ExampleAIModule::onStart()
 			if (closestMineral!=NULL)
 			{
 				(*i)->rightClick(closestMineral);
-				Broodwar->printf("Send worker %d to mineral %d", (*i)->getID(), closestMineral->getID());
+				//Broodwar->printf("Send worker %d to mineral %d", (*i)->getID(), closestMineral->getID());
 				
 			}
 		}
 
 	}
-		
+	
+	//Order one of our workers to guard our chokepoint.
+	//Iterate through the list of units.
+	Broodwar->printf("Mining initiated");
+	
 	for(std::set<Unit*>::const_iterator i=Broodwar->self()->getUnits().begin();i!=Broodwar->self()->getUnits().end();i++)
     {
 	//Check if unit is a worker.
@@ -63,10 +68,13 @@ void ExampleAIModule::onStart()
 			//Order the worker to move to the guard point
 			(*i)->rightClick(guardPoint);
 			//Only send the first worker.
+			Broodwar->printf("Guarding initiated");
 			break;
 		}
 
 	}
+
+	Broodwar->printf("%d",this->builders.size());
 	
 }
 
@@ -112,20 +120,12 @@ void ExampleAIModule::onFrame()
 	{
 		switch(this->AIstate){
 			case 1:
-				
-
-
-
-
-
 				break;
 			case 2:
 				break;
 			default:
 				Broodwar->printf("AIState fucked up!");
 		}
-		//Order one of our workers to guard our chokepoint.
-		//Iterate through the list of units.
 		
 	}
   
@@ -215,6 +215,16 @@ void ExampleAIModule::onUnitCreate(BWAPI::Unit* unit)
 	if (unit->getPlayer() == Broodwar->self())
 	{
 		Broodwar->sendText("A %s [%x] has been created at (%d,%d)",unit->getType().getName().c_str(),unit,unit->getPosition().x(),unit->getPosition().y());
+		if(unit->getType().isWorker()){
+			this->builders.insert(unit);
+			Broodwar->printf("Added worker %d to builders", unit->getID() );
+			Broodwar->printf("%d",this->builders.size());
+		}
+		else if (!unit->getType().isBuilding()){
+			this->army.insert(unit);
+			Broodwar->printf("Added soldier %d to army", unit->getID() );
+			Broodwar->printf("%d",this->army.size());	
+		}
 	}
 }
 
@@ -223,6 +233,18 @@ void ExampleAIModule::onUnitDestroy(BWAPI::Unit* unit)
 {
 	if (unit->getPlayer() == Broodwar->self())
 	{
+		if(unit->getType().isWorker()){
+			this->builders.erase(this->builders.find(unit));
+			Broodwar->printf("Deleted builder from builders");
+			Broodwar->printf("%d",this->builders.size());
+
+		}
+		else if(!unit->getType().isBuilding()){
+			this->army.erase(this->army.find(unit));
+			Broodwar->printf("Deleted soldier from army");
+			Broodwar->printf("%d",this->army.size());
+		
+		}
 		Broodwar->sendText("My unit %s [%x] has been destroyed at (%d,%d)",unit->getType().getName().c_str(),unit,unit->getPosition().x(),unit->getPosition().y());
 	}
 	else

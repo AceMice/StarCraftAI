@@ -215,6 +215,16 @@ void ExampleAIModule::onUnitCreate(BWAPI::Unit* unit)
 	if (unit->getPlayer() == Broodwar->self())
 	{
 		Broodwar->sendText("A %s [%x] has been created at (%d,%d)",unit->getType().getName().c_str(),unit,unit->getPosition().x(),unit->getPosition().y());
+		this->underConstruction.insert(unit);
+		Broodwar->printf("Added unit/building %d to underConstruction queue", unit->getID() );
+		Broodwar->printf("%d",this->underConstruction.size());
+	}
+}
+
+void ExampleAIModule::onUnitComplete(BWAPI::Unit* unit)
+{
+	if (unit->getPlayer() == Broodwar->self())
+	{
 		if(unit->getType().isWorker()){
 			this->builders.insert(unit);
 			Broodwar->printf("Added worker %d to builders", unit->getID() );
@@ -230,6 +240,11 @@ void ExampleAIModule::onUnitCreate(BWAPI::Unit* unit)
 			Broodwar->printf("Added building %d to buildings", unit->getID() );
 			Broodwar->printf("%d",this->buildings.size());	
 		}
+		
+		//Remove unit/building from construction queue
+		this->underConstruction.erase(this->underConstruction.find(unit));
+		Broodwar->printf("Deleted unit/Building from underConstruction queue");
+		Broodwar->printf("%d",this->underConstruction.size());
 	}
 }
 
@@ -238,28 +253,53 @@ void ExampleAIModule::onUnitDestroy(BWAPI::Unit* unit)
 {
 	if (unit->getPlayer() == Broodwar->self())
 	{
-		if(unit->getType().isWorker()){
+		if(!unit->isCompleted()){	//Being constructed
+			this->underConstruction.erase(this->underConstruction.find(unit));
+			Broodwar->printf("Deleted unit/building from underConstruction queue");
+			Broodwar->printf("%d",this->underConstruction.size());
+		}
+		else if(unit->getType().isWorker()){	//Is a worker
 			this->builders.erase(this->builders.find(unit));
 			Broodwar->printf("Deleted builder from builders");
 			Broodwar->printf("%d",this->builders.size());
 
 		}
-		else if(!unit->getType().isBuilding()){
-			this->army.erase(this->army.find(unit));
-			Broodwar->printf("Deleted soldier from army");
-			Broodwar->printf("%d",this->army.size());
-		
-		}
-		else{
+		else if(unit->getType().isBuilding())
+		{
 			this->buildings.erase(this->buildings.find(unit));
 			Broodwar->printf("Deleted building from buildings");
 			Broodwar->printf("%d",this->buildings.size());
+		} 
+		else{
+			this->army.erase(this->army.find(unit));
+			Broodwar->printf("Deleted soldier from army");
+			Broodwar->printf("%d",this->army.size());
 		}
+		
 		Broodwar->sendText("My unit %s [%x] has been destroyed at (%d,%d)",unit->getType().getName().c_str(),unit,unit->getPosition().x(),unit->getPosition().y());
 	}
 	else
 	{
 		Broodwar->sendText("Enemy unit %s [%x] has been destroyed at (%d,%d)",unit->getType().getName().c_str(),unit,unit->getPosition().x(),unit->getPosition().y());
+	}
+}
+
+BWAPI::Unit* ExampleAIModule::getBuilder(){
+
+	for(std::set<Unit*>::const_iterator i=this->builders.begin();i!=this->builders.end();i++)
+    {
+		if((*i)->isIdle())
+		{
+			return (*i);
+		}
+	}
+	// If no idle is found
+	for(std::set<Unit*>::const_iterator i=this->builders.begin();i!=this->builders.end();i++)
+    {
+		if(!(*i)->isConstructing())
+		{
+			return (*i);
+		}
 	}
 }
 
@@ -403,12 +443,6 @@ void ExampleAIModule::showForces()
 			Broodwar->printf("  - Player [%d]: %s",(*j)->getID(),(*j)->getName().c_str());
 		}
 	}
-}
-
-//Called when a unit has been completed, i.e. finished built.
-void ExampleAIModule::onUnitComplete(BWAPI::Unit *unit)
-{
-	//Broodwar->sendText("A %s [%x] has been completed at (%d,%d)",unit->getType().getName().c_str(),unit,unit->getPosition().x(),unit->getPosition().y());
 }
 
 void ExampleAIModule::getBuildPositions()

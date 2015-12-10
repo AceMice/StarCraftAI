@@ -17,13 +17,12 @@ class ExampleAIModule : public BWAPI::AIModule
 {
 private:
 	int AIstate;
-	BWAPI::TilePosition buildPos[10];
+	BWAPI::TilePosition buildPos[16];
 
 	std::set<BWAPI::Unit*> builders;
 	std::set<BWAPI::Unit*> army;
 	std::set<BWAPI::Unit*> buildings;
 	std::set<BWAPI::Unit*> underConstruction;
-
 public:
 	ExampleAIModule();
 	//Methods inherited from BWAPI:AIModule
@@ -51,6 +50,7 @@ public:
 	void showPlayers();
 	void showForces();
 	Position findGuardPoint();
-	void getBuildPositions();
+	void createBuildPositions();
+	BWAPI::TilePosition getNextBuildPosition();
 	BWAPI::Unit* getBuilder();
 };

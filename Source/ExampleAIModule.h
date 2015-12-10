@@ -51,6 +51,9 @@ public:
 	void showForces();
 	Position findGuardPoint();
 	void createBuildPositions();
-	BWAPI::TilePosition getNextBuildPosition();
-	BWAPI::Unit* getBuilder();
+	BWAPI::TilePosition getNextBuildPosition(BWAPI::UnitType buildingType);
+	BWAPI::Unit* getBuilder(bool idleOnly = false);
+	int nrOfBuildnings(BWAPI::UnitType buildingType);
+	void sendWorkerMine(BWAPI::Unit* worker);
+	BWAPI::Unit* getBuilding(BWAPI::UnitType buildingType);
 };

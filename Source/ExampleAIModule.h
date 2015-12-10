@@ -45,7 +45,8 @@ public:
 	void showPlayers();
 	void showForces();
 	Position findGuardPoint();
-	void getBuildPositions();
+	void createBuildPositions();
+	BWAPI::TilePosition getNextBuildPosition();
 	void buildBuilding(BWAPI::Unit *unit, BWAPI::UnitType building, BWAPI::TilePosition tilePos);
 	void trainUnit(BWAPI::UnitType unitToTrain, BWAPI::Unit *building);
 };

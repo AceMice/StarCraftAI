@@ -29,7 +29,7 @@ void ExampleAIModule::onStart()
 	//CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)AnalyzeThread, NULL, 0, NULL); //Threaded version
 	AnalyzeThread();
 	
-	this->getBuildPositions();
+	this->createBuildPositions();
 
 	for(int i = 0; i < 16; i++){
 		Broodwar->printf("Build position %d: (%d, %d)", i, this->buildPos[i].x(), this->buildPos[i].y());
@@ -118,7 +118,6 @@ void ExampleAIModule::onFrame()
 		//Broodwar->printf("It's working alright!");
 		//Order one of our workers to guard our chokepoint.
 		//Iterate through the list of units.
-		
 	}
   
 	//Draw lines around regions, chokepoints etc.
@@ -346,10 +345,18 @@ void ExampleAIModule::drawTerrainData()
 	//Draw the building positions
 	//Broodwar->printf("Drawing building positions...");
 	for(int i = 0; i < 16; i++){
-		Broodwar->drawBox(CoordinateType::Map, 
+		if(Broodwar->isBuildable(this->buildPos[i])){
+			Broodwar->drawBox(CoordinateType::Map, 
 			this->buildPos[i].x() * 32, this->buildPos[i].y() * 32, 
 			(this->buildPos[i].x() + 4) * 32, (this->buildPos[i].y() + 4)* 32,
 			Colors::Purple, false);
+		}
+		else{
+			Broodwar->drawBox(CoordinateType::Map, 
+			this->buildPos[i].x() * 32, this->buildPos[i].y() * 32, 
+			(this->buildPos[i].x() + 4) * 32, (this->buildPos[i].y() + 4)* 32,
+			Colors::Orange, false);
+		}
 	}
 }
 
@@ -386,7 +393,7 @@ void ExampleAIModule::onUnitComplete(BWAPI::Unit *unit)
 	//Broodwar->sendText("A %s [%x] has been completed at (%d,%d)",unit->getType().getName().c_str(),unit,unit->getPosition().x(),unit->getPosition().y());
 }
 
-void ExampleAIModule::getBuildPositions()
+void ExampleAIModule::createBuildPositions()
 {
 	TilePosition baseTile = Broodwar->self()->getStartLocation();
 	TilePosition chokeTile = TilePosition(this->findGuardPoint());
@@ -416,5 +423,14 @@ void ExampleAIModule::getBuildPositions()
 
 	for(int i = 0; i < 16; i++){
 		this->buildPos[i] = TilePosition(xs[i], ys[i]);
+	}
+}
+
+BWAPI::TilePosition ExampleAIModule::getNextBuildPosition()
+{
+	for(int i = 0; i < 16; i++){
+		if(Broodwar->isBuildable(this->buildPos[i])){
+			return BWAPI::TilePosition(this->buildPos[i]);
+		}
 	}
 }

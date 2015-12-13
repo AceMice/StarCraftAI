@@ -10,6 +10,9 @@ ExampleAIModule::ExampleAIModule()
 {
 	Broodwar->printf("Initaion of AI");
 	this->AIstate = 1;
+	this->localCount = 0;
+	this->currBuilder = NULL;
+	this->currBuilding = NULL;
 }
 
 //This is the startup method. It is called once
@@ -122,42 +125,161 @@ Position ExampleAIModule::findGuardPoint()
 //shall be called.
 void ExampleAIModule::onFrame()
 {
-	//If builder is idle -> mine
-	if(Broodwar->getFrameCount() % 250 == 0){
-		Unit* idleBuilder = this->getBuilder(true);
-		if(idleBuilder != NULL){
-			this->sendWorkerMine(idleBuilder);
-		}
-	}
 	//Call every 100:th frame
 	if (Broodwar->getFrameCount() % 100 == 0)
 	{
+		bool ordersGiven = false;
 		Broodwar->printf("Current state: %d", this->AIstate);
+		Broodwar->printf("Local Counter: %d", this->localCount);
 		switch(this->AIstate){
 			case 1:
+				if(this->currBuilder != NULL && this->currBuilder->getOrder() == BWAPI::Orders::PlaceBuilding){
+					ordersGiven = true;
+					//Broodwar->printf("Adding one extra..!..!..!");
+				}
 				if(this->nrOfBuildnings(BWAPI::UnitTypes::Terran_Supply_Depot) == 2){
 					this->AIstate = 2;
 					break;
 				}
-				if(Broodwar->self()->minerals() > 100 && this->getBuilder() != NULL){
-					this->getBuilder()->build(this->getNextBuildPosition(BWAPI::UnitTypes::Terran_Supply_Depot), BWAPI::UnitTypes::Terran_Supply_Depot);
+				this->currBuilder = this->getBuilder();
+				if(!ordersGiven && Broodwar->self()->minerals() > 100 && this->currBuilder != NULL){
+					this->currBuilder->build(this->getNextBuildPosition(BWAPI::UnitTypes::Terran_Supply_Depot), BWAPI::UnitTypes::Terran_Supply_Depot);
 				}
 				break;
+
+
 			case 2:
+				if(this->currBuilder != NULL && this->currBuilder->getOrder() == BWAPI::Orders::PlaceBuilding){
+					ordersGiven = true;
+					//Broodwar->printf("Adding one extra..!..!..!");
+				}
 				if(this->nrOfBuildnings(BWAPI::UnitTypes::Terran_Barracks) == 1){
 					this->AIstate = 3;
 					break;
 				}
-				if(Broodwar->self()->minerals() > 150 && this->getBuilder() != NULL){
-					this->getBuilder()->build(this->getNextBuildPosition(BWAPI::UnitTypes::Terran_Barracks), BWAPI::UnitTypes::Terran_Barracks);
+				this->currBuilder = this->getBuilder();
+				if(!ordersGiven && Broodwar->self()->minerals() > 150 && this->currBuilder != NULL){
+					this->currBuilder->build(this->getNextBuildPosition(BWAPI::UnitTypes::Terran_Barracks), BWAPI::UnitTypes::Terran_Barracks);
 				}
 				break;
+
+
 			case 3:
+				if(this->localCount == 10){
+					this->AIstate = 4;
+					this->localCount = 0;
+					break;
+				}
+				this->currBuilding = this->getBuilding(BWAPI::UnitTypes::Terran_Barracks);
+				if(this->currBuilding != NULL && this->currBuilding->getRallyPosition() != this->findGuardPoint()){
+					this->currBuilding->setRallyPoint(this->findGuardPoint());
+				}
+				if(Broodwar->self()->minerals() > 50 && this->currBuilding != NULL){
+					this->currBuilding->train(BWAPI::UnitTypes::Terran_Marine);
+					this->localCount++;
+				}
+				break;
+
+
+			case 4:
 				
+				if(this->localCount == 5){
+					this->AIstate = 5;
+					this->localCount = 0;
+					break;
+				}
+				this->currBuilding = this->getBuilding(BWAPI::UnitTypes::Terran_Command_Center);
+				if(Broodwar->self()->minerals() > 50 && this->currBuilding != NULL){
+					this->currBuilding->train(BWAPI::UnitTypes::Terran_SCV);
+					this->localCount++;
+				}
+				break;
+
+
+			case 5:
+				if(this->currBuilder != NULL && this->currBuilder->getOrder() == BWAPI::Orders::PlaceBuilding){
+					ordersGiven = true;
+					Broodwar->printf("Adding one extra..!..!..!");
+				}
+				Broodwar->printf("Nr of refienerys: %d", this->nrOfBuildnings(BWAPI::UnitTypes::Terran_Refinery));
+				if(this->nrOfBuildnings(BWAPI::UnitTypes::Terran_Refinery) == 1){
+					this->AIstate = 6;
+					break;
+				}
+				this->currBuilder = this->getBuilder();
+				if(!ordersGiven && Broodwar->self()->minerals() > 100 && this->currBuilder != NULL){
+					Unit* base = this->getBuilding(BWAPI::UnitTypes::Terran_Command_Center);
+					Unit* closestGas=NULL;
+					for(std::set<Unit*>::iterator g=Broodwar->getGeysers().begin();g!=Broodwar->getGeysers().end();g++)
+					{
+						if (closestGas==NULL || base->getDistance(*g) < base->getDistance(closestGas))
+						{	
+							closestGas=*g;
+						}
+					}
+					if (closestGas!=NULL)
+					{
+						this->currBuilder->build(closestGas->getTilePosition(), BWAPI::UnitTypes::Terran_Refinery);
+					}
+				}
+				break;
+			case 6:
+				this->localCount = 0;
+				for(std::set<Unit*>::const_iterator i=this->builders.begin();i!=this->builders.end();i++)
+				{
+					//Broodwar->printf("Looking thrugh builders, curr id: %d", (*i)->getID());
+					if((*i)->isGatheringGas())
+					{
+						this->localCount++;
+					}
+				}
+				this->currBuilding = this->getBuilding(BWAPI::UnitTypes::Terran_Refinery);
+				if(this->currBuilding != NULL && this->currBuilding->isCompleted() && this->localCount < 2){
+					this->getBuilder()->rightClick(this->currBuilding);
+				}
+				else if(this->currBuilding != NULL && this->currBuilding->isCompleted()){
+					this->AIstate = 7;
+					this->localCount = 0;
+					break;
+				}
+				break;
+
+			case 7:
+				if(this->currBuilder != NULL && this->currBuilder->getOrder() == BWAPI::Orders::PlaceBuilding){
+					ordersGiven = true;
+					//Broodwar->printf("Adding one extra..!..!..!");
+				}
+				if(this->nrOfBuildnings(BWAPI::UnitTypes::Terran_Academy) == 1){
+					this->AIstate = 8;
+					break;
+				}
+				this->currBuilder = this->getBuilder();
+				if(!ordersGiven && Broodwar->self()->minerals() > 150 && this->currBuilder != NULL){
+					this->currBuilder->build(this->getNextBuildPosition(BWAPI::UnitTypes::Terran_Academy), BWAPI::UnitTypes::Terran_Academy);
+				}
+				break;
+			case 8:
+				if(this->localCount == 3){
+					this->AIstate = 9;
+					this->localCount = 0;
+					break;
+				}
+				this->currBuilding = this->getBuilding(BWAPI::UnitTypes::Terran_Barracks);
+				if(this->currBuilding != NULL && this->currBuilding->getRallyPosition() != this->findGuardPoint()){
+					this->currBuilding->setRallyPoint(this->findGuardPoint());
+				}
+				if(Broodwar->self()->minerals() > 50 && Broodwar->self()->gas() > 25 && this->currBuilding != NULL){
+					this->currBuilding->train(BWAPI::UnitTypes::Terran_Medic);
+					this->localCount++;
+				}
 				break;
 			default:
 				Broodwar->printf("AIState fucked up!");
 				break;
+		}
+		Unit* idleBuilder = this->getBuilder(true);
+		if(idleBuilder != NULL){
+			this->sendWorkerMine(idleBuilder);
 		}
 
 	}
@@ -328,7 +450,7 @@ BWAPI::Unit* ExampleAIModule::getBuilder(bool idleOnly){
 	
 	for(std::set<Unit*>::const_iterator i=this->builders.begin();i!=this->builders.end();i++)
     {
-		Broodwar->printf("Looking thrugh builders, curr id: %d", (*i)->getID());
+		//Broodwar->printf("Looking thrugh builders, curr id: %d", (*i)->getID());
 		if((*i)->isIdle())
 		{
 			Broodwar->printf("Found idle ID: %d", (*i)->getID());
@@ -339,8 +461,8 @@ BWAPI::Unit* ExampleAIModule::getBuilder(bool idleOnly){
 	// If no idle is found
 		for(std::set<Unit*>::const_iterator i=this->builders.begin();i!=this->builders.end();i++)
 		{
-			Broodwar->printf("No idle found.. Next, curr id: %d", (*i)->getID());
-			if(!(*i)->isConstructing())
+			//Broodwar->printf("No idle found.. Next, curr id: %d", (*i)->getID());
+			if(!(*i)->isConstructing() && !(*i)->isGatheringGas())
 			{
 				Broodwar->printf("Found NON idle ID: %d", (*i)->getID());
 				return (*i);
@@ -361,6 +483,12 @@ void ExampleAIModule::onUnitMorph(BWAPI::Unit* unit)
 //No need to change this.
 void ExampleAIModule::onUnitRenegade(BWAPI::Unit* unit)
 {
+	if (unit->getPlayer() == Broodwar->self() && unit->getType() == BWAPI::UnitTypes::Terran_Refinery)
+	{
+		this->buildings.insert(unit);
+		Broodwar->printf("Added building %d to buildings", unit->getID() );
+		Broodwar->printf("%d",this->buildings.size());	
+	}
 	//Broodwar->sendText("A %s [%x] is now owned by %s",unit->getType().getName().c_str(),unit,unit->getPlayer()->getName().c_str());
 }
 
@@ -565,6 +693,18 @@ int ExampleAIModule::nrOfBuildnings(BWAPI::UnitType buildingType)
 	for(std::set<Unit*>::iterator i=this->underConstruction.begin();i!=this->underConstruction.end();i++)
 	{
 		if((*i)->getType() == buildingType){
+			counter++;
+		}
+	}
+	return counter;
+}
+
+int ExampleAIModule::nrOfUnits(BWAPI::UnitType unitType)
+{
+	int counter = 0;
+	for(std::set<Unit*>::iterator i=this->army.begin();i!=this->army.end();i++)
+	{
+		if((*i)->getType() == unitType){
 			counter++;
 		}
 	}

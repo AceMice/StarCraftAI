@@ -17,12 +17,16 @@ class ExampleAIModule : public BWAPI::AIModule
 {
 private:
 	int AIstate;
+	int localCount;
 	BWAPI::TilePosition buildPos[16];
 
 	std::set<BWAPI::Unit*> builders;
 	std::set<BWAPI::Unit*> army;
 	std::set<BWAPI::Unit*> buildings;
 	std::set<BWAPI::Unit*> underConstruction;
+
+	BWAPI::Unit* currBuilder;
+	BWAPI::Unit* currBuilding;
 public:
 	ExampleAIModule();
 	//Methods inherited from BWAPI:AIModule
@@ -54,6 +58,8 @@ public:
 	BWAPI::TilePosition getNextBuildPosition(BWAPI::UnitType buildingType);
 	BWAPI::Unit* getBuilder(bool idleOnly = false);
 	int nrOfBuildnings(BWAPI::UnitType buildingType);
+	int nrOfUnits(BWAPI::UnitType unitType);
 	void sendWorkerMine(BWAPI::Unit* worker);
 	BWAPI::Unit* getBuilding(BWAPI::UnitType buildingType);
+	void moveArmy(BWAPI::TilePosition tilePos);
 };

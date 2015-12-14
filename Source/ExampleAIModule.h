@@ -62,4 +62,5 @@ public:
 	void sendWorkerMine(BWAPI::Unit* worker);
 	BWAPI::Unit* getBuilding(BWAPI::UnitType buildingType);
 	void moveArmy(BWAPI::TilePosition tilePos);
+	BWAPI::Position createRallyPoint();
 };

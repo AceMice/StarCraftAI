@@ -126,9 +126,11 @@ Position ExampleAIModule::findGuardPoint()
 void ExampleAIModule::onFrame()
 {
 	//Call every 100:th frame
-	if (Broodwar->getFrameCount() % 100 == 0)
+	if (Broodwar->getFrameCount() % 50 == 0)
 	{
 		bool ordersGiven = false;
+		bool noEnemy = false;
+		std::set<Unit*> unitsInRange;
 		Broodwar->printf("Current state: %d", this->AIstate);
 		Broodwar->printf("Local Counter: %d", this->localCount);
 		switch(this->AIstate){
@@ -139,6 +141,7 @@ void ExampleAIModule::onFrame()
 				}
 				if(this->nrOfBuildnings(BWAPI::UnitTypes::Terran_Supply_Depot) == 2){
 					this->AIstate = 2;
+					this->currBuilder = NULL;
 					break;
 				}
 				this->currBuilder = this->getBuilder();
@@ -155,6 +158,7 @@ void ExampleAIModule::onFrame()
 				}
 				if(this->nrOfBuildnings(BWAPI::UnitTypes::Terran_Barracks) == 1){
 					this->AIstate = 3;
+					this->currBuilder = NULL;
 					break;
 				}
 				this->currBuilder = this->getBuilder();
@@ -171,12 +175,13 @@ void ExampleAIModule::onFrame()
 					break;
 				}
 				this->currBuilding = this->getBuilding(BWAPI::UnitTypes::Terran_Barracks);
-				if(this->currBuilding != NULL && this->currBuilding->getRallyPosition() != this->findGuardPoint()){
-					this->currBuilding->setRallyPoint(this->findGuardPoint());
+				if(this->currBuilding != NULL && this->currBuilding->getRallyPosition() != this->createRallyPoint()){
+					this->currBuilding->setRallyPoint(this->createRallyPoint());
 				}
 				if(Broodwar->self()->minerals() > 50 && this->currBuilding != NULL){
-					this->currBuilding->train(BWAPI::UnitTypes::Terran_Marine);
-					this->localCount++;
+					if(this->currBuilding->train(BWAPI::UnitTypes::Terran_Marine)){
+						this->localCount++;
+					}
 				}
 				break;
 
@@ -190,8 +195,9 @@ void ExampleAIModule::onFrame()
 				}
 				this->currBuilding = this->getBuilding(BWAPI::UnitTypes::Terran_Command_Center);
 				if(Broodwar->self()->minerals() > 50 && this->currBuilding != NULL){
-					this->currBuilding->train(BWAPI::UnitTypes::Terran_SCV);
-					this->localCount++;
+					if(this->currBuilding->train(BWAPI::UnitTypes::Terran_SCV)){
+						this->localCount++;
+					}
 				}
 				break;
 
@@ -204,6 +210,7 @@ void ExampleAIModule::onFrame()
 				Broodwar->printf("Nr of refienerys: %d", this->nrOfBuildnings(BWAPI::UnitTypes::Terran_Refinery));
 				if(this->nrOfBuildnings(BWAPI::UnitTypes::Terran_Refinery) == 1){
 					this->AIstate = 6;
+					this->currBuilder = NULL;
 					break;
 				}
 				this->currBuilder = this->getBuilder();
@@ -251,6 +258,7 @@ void ExampleAIModule::onFrame()
 				}
 				if(this->nrOfBuildnings(BWAPI::UnitTypes::Terran_Academy) == 1){
 					this->AIstate = 8;
+					this->currBuilder = NULL;
 					break;
 				}
 				this->currBuilder = this->getBuilder();
@@ -265,12 +273,136 @@ void ExampleAIModule::onFrame()
 					break;
 				}
 				this->currBuilding = this->getBuilding(BWAPI::UnitTypes::Terran_Barracks);
+				if(this->currBuilding != NULL && this->currBuilding->getRallyPosition() != this->createRallyPoint()){
+					this->currBuilding->setRallyPoint(this->createRallyPoint());
+				}
+				if(Broodwar->self()->minerals() > 50 && Broodwar->self()->gas() > 25 && this->currBuilding != NULL){
+					if(this->currBuilding->train(BWAPI::UnitTypes::Terran_Medic)){
+						this->localCount++;
+					}
+				}
+				break;
+
+			
+			case 9:
+				if(this->currBuilder != NULL && this->currBuilder->getOrder() == BWAPI::Orders::PlaceBuilding){
+					ordersGiven = true;
+					//Broodwar->printf("Adding one extra..!..!..!");
+				}
+				if(this->nrOfBuildnings(BWAPI::UnitTypes::Terran_Factory) == 1){
+					this->AIstate = 10;
+					this->currBuilder = NULL;
+					break;
+				}
+				this->currBuilder = this->getBuilder();
+				if(!ordersGiven && Broodwar->self()->minerals() > 200 && Broodwar->self()->gas() > 100 && this->currBuilder != NULL){
+					this->currBuilder->build(this->buildPos[14], BWAPI::UnitTypes::Terran_Factory);
+				}
+				break;
+
+			case 10:
+				if(this->nrOfBuildnings(BWAPI::UnitTypes::Terran_Machine_Shop) == 1){
+					this->AIstate = 11;
+					this->currBuilder = NULL;
+					break;
+				}
+				this->currBuilding = this->getBuilding(BWAPI::UnitTypes::Terran_Factory);
+				if(Broodwar->self()->minerals() > 200 && Broodwar->self()->gas() > 100 && this->currBuilding != NULL){
+					this->currBuilding->buildAddon(BWAPI::UnitTypes::Terran_Machine_Shop);
+				}
+				break;
+
+			case 11:
+				this->currBuilding = this->getBuilding(BWAPI::UnitTypes::Terran_Machine_Shop);
+				if(Broodwar->self()->minerals() > 150 && Broodwar->self()->gas() > 150 && this->currBuilding != NULL){
+					if(Broodwar->self()->isResearchAvailable(BWAPI::TechTypes::Tank_Siege_Mode)){
+						if(this->currBuilding->research(BWAPI::TechTypes::Tank_Siege_Mode)){
+							this->AIstate = 12;
+							break;
+						}
+					}
+				}
+				break;
+
+			case 12:
+				if(this->currBuilder != NULL && this->currBuilder->getOrder() == BWAPI::Orders::PlaceBuilding){
+					ordersGiven = true;
+					//Broodwar->printf("Adding one extra..!..!..!");
+				}
+				if(this->nrOfBuildnings(BWAPI::UnitTypes::Terran_Supply_Depot) == 3){
+					this->AIstate = 13;
+					this->currBuilder = NULL;
+					break;
+				}
+				this->currBuilder = this->getBuilder();
+				if(!ordersGiven && Broodwar->self()->minerals() > 100 && this->currBuilder != NULL){
+					this->currBuilder->build(this->getNextBuildPosition(BWAPI::UnitTypes::Terran_Supply_Depot), BWAPI::UnitTypes::Terran_Supply_Depot);
+				}
+				break;
+			case 13:
+				if(this->localCount == 3){
+					this->AIstate = 14;
+					this->localCount = 0;
+					break;
+				}
+				this->currBuilding = this->getBuilding(BWAPI::UnitTypes::Terran_Factory);
 				if(this->currBuilding != NULL && this->currBuilding->getRallyPosition() != this->findGuardPoint()){
 					this->currBuilding->setRallyPoint(this->findGuardPoint());
 				}
-				if(Broodwar->self()->minerals() > 50 && Broodwar->self()->gas() > 25 && this->currBuilding != NULL){
-					this->currBuilding->train(BWAPI::UnitTypes::Terran_Medic);
-					this->localCount++;
+				if(Broodwar->self()->minerals() > 150 && Broodwar->self()->gas() > 100 && this->currBuilding != NULL){
+					if(this->currBuilding->train(BWAPI::UnitTypes::Terran_Siege_Tank_Tank_Mode)){
+						this->localCount++;
+					}
+				}
+				break;
+			case 14:
+				if(this->localCount == 0){
+					/*for(std::set<Unit*>::const_iterator i=this->army.begin();i!=this->army.end();i++)
+					{
+						(*i)->rightClick(enemy_base->getCenter());
+						unitsInSight = (*i)->getUnitsInRadius(100);
+						for(std::set<Unit*>::const_iterator j=this->unitsInSight.begin();j!=this->unitsInSight.end();j++)
+						{
+							if((*j)->getPlayer() != Broodwar->self()){
+								(*i)->attack((*j));
+							}
+						}
+					}*/
+
+					
+					for(std::set<Unit*>::const_iterator i=this->army.begin();i!=this->army.end();i++)
+					{
+						if((*i)->getType() == BWAPI::UnitTypes::Terran_Siege_Tank_Tank_Mode){
+							unitsInRange = (*i)->getUnitsInRadius(360); //Max range = 384
+							Broodwar->printf("Tank Mode: Units in range size: %d", unitsInRange.size());
+							for(std::set<Unit*>::const_iterator j=unitsInRange.begin();j!=unitsInRange.end();j++)
+							{
+								if((*j)->getPlayer() == Broodwar->enemy()){
+									(*i)->siege();
+									Broodwar->printf("Siege mode activated!");
+									break;
+								}
+							}
+						}
+						if((*i)->getType() == BWAPI::UnitTypes::Terran_Siege_Tank_Siege_Mode){
+							unitsInRange = (*i)->getUnitsInRadius(360);
+							noEnemy = true;
+							Broodwar->printf("Siege Mode: Units in range size: %d", unitsInRange.size());
+							for(std::set<Unit*>::const_iterator j=unitsInRange.begin();j!=unitsInRange.end();j++)
+							{
+								if((*j)->getPlayer() == Broodwar->enemy()){
+									noEnemy = false;
+									break;
+								}
+							}
+							if(noEnemy){
+								(*i)->unsiege();
+								Broodwar->printf("Unsiege has been issued!");
+							}
+						}
+						(*i)->attack(BWAPI::Position::Position(Broodwar->enemy()->getStartLocation()));
+					}
+					//this->localCount = 1;
 				}
 				break;
 			default:
@@ -672,8 +804,9 @@ void ExampleAIModule::createBuildPositions()
 
 BWAPI::TilePosition ExampleAIModule::getNextBuildPosition(BWAPI::UnitType buildingType)
 {
+	Unit* builder = this->getBuilder();
 	for(int i = 0; i < 16; i++){
-		if(Broodwar->canBuildHere(this->getBuilder(), this->buildPos[i], buildingType)){
+		if(Broodwar->canBuildHere(builder, this->buildPos[i], buildingType)){
 			Broodwar->printf("Got the buildtile id: %d", i);
 			return BWAPI::TilePosition(this->buildPos[i]);
 		}
@@ -741,4 +874,26 @@ void ExampleAIModule::sendWorkerMine(BWAPI::Unit* worker)
 			
 		}
 	}
+}
+
+BWAPI::Position ExampleAIModule::createRallyPoint()
+{
+	BWAPI::TilePosition baseTile = Broodwar->self()->getStartLocation();
+	BWAPI::Position chokePos = this->findGuardPoint();
+	int x = 0;
+	int y = 0;
+	if(baseTile.x() < chokePos.x()){
+		x = chokePos.x() - 50;
+	}
+	else{
+		x = chokePos.x() + 50;
+	}
+	if(baseTile.y() < chokePos.y()){
+		y = chokePos.y() - 20;
+	}
+	else{
+		y = chokePos.y() + 20;
+	}
+
+	return BWAPI::Position::Position(x, y);
 }
